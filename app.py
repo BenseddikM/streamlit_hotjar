@@ -39,19 +39,29 @@ def inject_script_to_streamlit(script, element_id, inject_head=True):
     # Insert the script in the head tag of the static template inside your virtual
     index_path = Path(st.__file__).parent / "static" / "index.html"
     soup = BeautifulSoup(index_path.read_text(), features="html.parser")
-    if not soup.find(id=element_id):  # if cannot find tag
-        bck_index = index_path.with_suffix('.bck')
-        if bck_index.exists():
-            shutil.copy(bck_index, index_path)  # recover from backup
-        else:
-            shutil.copy(index_path, bck_index)  # keep a backup
-        html = str(soup)
-        if inject_head:
-            new_html = html.replace('<head>', '<head>\n' + script)
-        else:
-            new_html = html.replace('<body>', '<body>\n' + script)
-        index_path.write_text(new_html)
-        print(f'Injected {element_id}')
+    
+    # Check if the script has already been injected
+    if soup.find(id=element_id):
+        print(f'Script with id {element_id} is already injected.')
+        return
+
+    bck_index = index_path.with_suffix('.bck')
+    if bck_index.exists():
+        shutil.copy(bck_index, index_path)  # recover from backup
+    else:
+        shutil.copy(index_path, bck_index)  # keep a backup
+    html = str(soup)
+    
+    # Add the id attribute to the script tag
+    script_with_id = script.replace('<script>', f'<script id="{element_id}">')
+    
+    if inject_head:
+        new_html = html.replace('<head>', '<head>\n' + script_with_id)
+    else:
+        new_html = html.replace('<body>', '<body>\n' + script_with_id)
+    index_path.write_text(new_html)
+    print(f'Injected {element_id}')
+
 
 # Generate sample data
 np.random.seed(42)
