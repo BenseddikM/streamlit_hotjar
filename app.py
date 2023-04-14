@@ -17,6 +17,29 @@ import shutil
 from pathlib import Path
 from bs4 import BeautifulSoup
 
+# Streamlit app settings
+st.set_page_config(page_title='Fancy Streamlit App')
+
+@st.cache_data
+def create_data():
+    # Generate sample data
+    np.random.seed(42)
+    date_rng = pd.date_range(start='1/1/2020', end='1/1/2021', freq='D')
+    data = pd.DataFrame(date_rng, columns=['date'])
+    data['y1'] = np.random.randn(len(date_rng)).cumsum()
+    data['y2'] = np.random.randn(len(date_rng)).cumsum()
+    data['y3'] = np.random.randn(len(date_rng)).cumsum()
+    return data
+
+@st.cache_data
+def create_charts(data):
+    # Create Plotly charts
+    fig1 = px.line(data, x='date', y='y1', title='Line Chart')
+    fig2 = px.scatter(data, x='date', y='y2', title='Scatter Plot')
+    fig3 = px.bar(data, x='date', y='y3', title='Bar Chart')
+    fig4 = px.pie(data, values='y1', names='date', title='Pie Chart')
+    return fig1, fig2, fig3, fig4
+
 HOTJAR_TRACK_CODE = """
 <!-- Hotjar Tracking Code for https://benseddikm-streamlit-hotjar-app-drdwuu.streamlit.app/ -->
 <script>
@@ -35,20 +58,25 @@ def inject_hotjar():
     HOTJAR_ELEMENT = "hotjar"
     inject_script_to_streamlit(HOTJAR_TRACK_CODE, HOTJAR_ELEMENT)
 
+@st.cache_resource
 def inject_script_to_streamlit(script, element_id, inject_head=True):
+    # Insert the script in the head tag of the static template inside your virtual
     index_path = Path(st.__file__).parent / "static" / "index.html"
     soup = BeautifulSoup(index_path.read_text(), features="html.parser")
     
+    # Check if the script has already been injected
     if soup.find(id=element_id):
         print(f'Script with id {element_id} is already injected.')
         return
 
     bck_index = index_path.with_suffix('.bck')
     if bck_index.exists():
-        shutil.copy(bck_index, index_path)
+        shutil.copy(bck_index, index_path)  # recover from backup
     else:
-        shutil.copy(index_path, bck_index)
-
+        shutil.copy(index_path, bck_index)  # keep a backup
+    html = str(soup)
+    
+    # Add the id attribute to the script tag
     script_with_id = script.replace('<script>', f'<script id="{element_id}">')
     
     if inject_head:
@@ -58,39 +86,28 @@ def inject_script_to_streamlit(script, element_id, inject_head=True):
     index_path.write_text(new_html)
     print(f'Injected {element_id}')
 
+
 # Generate sample data
 np.random.seed(42)
 date_rng = pd.date_range(start='1/1/2020', end='1/1/2021', freq='D')
-data = pd.DataFrame(date_rng, columns=['date'])
-data['y1'] = np.random.randn(len(date_rng)).cumsum()
-data['y2'] = np.random.randn(len(date_rng)).cumsum()
-data['y3'] = np.random.randn(len(date_rng)).cumsum()
 
-# Create Plotly charts
-config = {'responsive': True}
-
-fig1 = px.line(data, x='date', y='y1', title='Line Chart')
-fig2 = px.scatter(data, x='date', y='y2', title='Scatter Plot')
-fig3 = px.bar(data, x='date', y='y3', title='Bar Chart')
-fig4 = px.pie(data, values='y1', names='date', title='Pie Chart')
-
-# Streamlit app settings
-st.set_page_config(page_title='Fancy Streamlit App', layout='wide')
+data = create_data()
+fig1, fig2, fig3, fig4 = create_charts(data)
 
 # App title
 st.title('Fancy Streamlit App with Multiple Charts')
 
 # Call the functions to inject the provided code
+
 inject_hotjar()
 
 # Sidebar
 st.sidebar.header('Options')
 chart_type = st.sidebar.selectbox('Choose a chart type', ['Line Chart', 'Scatter Plot', 'Bar Chart', 'Pie Chart'])
 slider_value = st.sidebar.slider('Select a range for y1 values', int(data['y1'].min()), int(data['y1'].max()), (int(data['y1'].min()), int(data['y1'].max())))
-date_range = st.sidebar.date_input('Select a date range', [data['date'].min(), data['date'].max()])
 
-# Filter data based on the selected range and date
-filtered_data = data[(data['y1'] >= slider_value[0]) & (data['y1'] <= slider_value[1]) & (data['date'] >= date_range[0]) & (data['date'] <= date_range[1])]
+# Filter data based on the selected range
+filtered_data = data[(data['y1'] >= slider_value[0]) & (data['y1'] <= slider_value[1])]
 
 # Update Plotly charts with filtered data
 fig1.update_traces(x=filtered_data['date'], y=filtered_data['y1'])
@@ -100,10 +117,10 @@ fig4.update_traces(values=filtered_data['y1'], labels=filtered_data['date'])
 
 # Display the selected chart in Streamlit
 if chart_type == 'Line Chart':
-    st.plotly_chart(fig1, config=config)
+    st.plotly_chart(fig1, use_container_widt=True)
 elif chart_type == 'Scatter Plot':
-    st.plotly_chart(fig2, config=config)
+    st.plotly_chart(fig2, use_container_widt=True)
 elif chart_type == 'Bar Chart':
-    st.plotly_chart(fig3, config=config)
+    st.plotly_chart(fig3, use_container_widt=True)
 elif chart_type == 'Pie Chart':
-    st.plotly_chart(fig4, config=config)
+    st.plotly_chart(fig4, use_container_widt=True)
