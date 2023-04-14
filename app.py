@@ -29,7 +29,13 @@ def create_data():
     data['y1'] = np.random.randn(len(date_rng)).cumsum()
     data['y2'] = np.random.randn(len(date_rng)).cumsum()
     data['y3'] = np.random.randn(len(date_rng)).cumsum()
+
     return data
+
+@st.cache_data
+def create_histogram(data):
+    fig = px.histogram(data, x='y1', title='Histogram Chart')
+    return fig
 
 @st.cache_data
 def create_charts(data):
@@ -38,7 +44,9 @@ def create_charts(data):
     fig2 = px.scatter(data, x='date', y='y2', title='Scatter Plot')
     fig3 = px.bar(data, x='date', y='y3', title='Bar Chart')
     fig4 = px.pie(data, values='y1', names='date', title='Pie Chart')
-    return fig1, fig2, fig3, fig4
+    fig5 = create_histogram(data)
+    return fig1, fig2, fig3, fig4, fig5
+
 
 HOTJAR_TRACK_CODE = """
 <!-- Hotjar Tracking Code for https://benseddikm-streamlit-hotjar-app-drdwuu.streamlit.app/ -->
@@ -92,7 +100,7 @@ np.random.seed(42)
 date_rng = pd.date_range(start='1/1/2020', end='1/1/2021', freq='D')
 
 data = create_data()
-fig1, fig2, fig3, fig4 = create_charts(data)
+fig1, fig2, fig3, fig4, fig5 = create_charts(data)
 
 # App title
 st.title('Fancy Streamlit App with Multiple Charts')
@@ -124,3 +132,6 @@ elif chart_type == 'Bar Chart':
     st.plotly_chart(fig3, use_container_widt=True)
 elif chart_type == 'Pie Chart':
     st.plotly_chart(fig4, use_container_widt=True)
+
+st.plotly_chart(fig4, use_container_widt=True)
+st.plotly_chart(fig5, use_container_width=True)
