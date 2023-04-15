@@ -26,7 +26,7 @@ indicators_container = st.container()
 with indicators_container:    
     # Display indicators
     col1, col2, col3 = st.columns(3)
-    col1.metric(label="Metric 1", value="20 km", delta="2 km")
+    col1.metric(label="AUM", value="${:,.0f}".format(1244892928), delta="${:,.0f}".format(230131))
     col2.metric(label="Metric 1", value="10 °F", delta="20 °F")
     col3.metric(label="Metric 1", value="1000 ph", delta="-5000 ph")
 
