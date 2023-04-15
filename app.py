@@ -84,21 +84,25 @@ def create_charts(data):
                       x='date',
                       y='y2',
                       title='Scatter Plot',
+                      opacity=0.8,
                       color_discrete_sequence=['#eda820'])
     fig3 = px.bar(data,
                   x='date',
                   y='y3',
                   title='Bar Chart',
+                  opacity=0.8,
                   color_discrete_sequence=['#eda820'])
     fig4 = px.pie(data,
                   values='y1',
                   names='date',
+                  opacity=0.8,
                   title='Pie Chart',
                   color_discrete_sequence=['#eda820'])
     fig5 = px.histogram(data,
                        x='y1',
                        title='Histogram Chart',
-                       nbins=20,
+                       nbins=100,
+                       opacity=0.8,
                        color_discrete_sequence=['#eda820'])
     return fig1, fig2, fig3, fig4, fig5
 
